@@ -1,0 +1,16 @@
+{
+    "name": "h264bsd",
+    "description": "H264 decoder",
+    "filters":["h264bsd","rfnalu"],
+    "help": "This filter decodes H264 CBP streams through h264 bsd library.",
+    "support": [
+        "video"
+    ],
+    "sources":"https://codeload.github.com/Bevara/h264bsd/zip/refs/heads/main",
+    "filter_source":{
+        "h264bsd" : "dec_h264bsd.c",
+        "rfnalu" : "reframe_nalu.c"
+    },
+    "Format": ["AVC"],
+    "licence_required":false
+}
