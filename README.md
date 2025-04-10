@@ -1,2 +1,2 @@
-# Theora
-This filter decodes Theora streams through libtheora library.
+# H264Bsd
+This filter decodes H.264 streams through h264bsd library.
