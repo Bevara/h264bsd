@@ -19,7 +19,7 @@ macro(add_filter FILTERNAME ENTRYFILES LINKFILES ENTRY_FN DEFINITIONS INCLUDES L
 
         set_target_properties(${FILTERNAME}_${VERSION}
                 PROPERTIES
-                LINK_FLAGS " -sWASM_BIGINT -s SIDE_MODULE=2 -s EXPORTED_FUNCTIONS=${ENTRY_FN} ${LINK_FLAGS}"
+                LINK_FLAGS " -s SIDE_MODULE=2 -s EXPORTED_FUNCTIONS=${ENTRY_FN} ${LINK_FLAGS}"
         )
 
         target_compile_definitions(${FILTERNAME}_${VERSION} PRIVATE ${DEFINITIONS})

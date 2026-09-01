@@ -211,8 +211,14 @@ GF_FilterRegister h264bsdRegister = {
 };
 
 
-const GF_FilterRegister * EMSCRIPTEN_KEEPALIVE dynCall_h264bsd_register(GF_FilterSession *session)
+const GF_FilterRegister * EMSCRIPTEN_KEEPALIVE h264bsd_register(GF_FilterSession *session)
 {
 	return &h264bsdRegister;
 }
 
+
+#include "filter_register.h"
+__attribute__((constructor))
+void register_h264bsd(void) {
+    gf_filter_auto_register("h264bsd", h264bsd_register);
+}
