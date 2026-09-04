@@ -157,6 +157,10 @@ GF_BitStream *gf_bs_new(const u8 *buffer, u64 BufferSize, u32 mode)
 			/*if BufferSize is specified, use it. This is typically used when AvgSize of
 			some buffers is known, but some exceed it.*/
 			if (BufferSize) {
+				if (BufferSize > GF_UINT_MAX) {
+					gf_free(tmp);
+					return NULL;
+				}
 				tmp->size = BufferSize;
 			} else {
 				tmp->size = BS_MEM_BLOCK_ALLOC_SIZE;
@@ -234,9 +238,6 @@ GF_BitStream *gf_bs_from_file(FILE *f, u32 mode)
 }
 
 #ifdef GPAC_HAS_FD
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 GF_EXPORT
 GF_BitStream *gf_bs_from_fd(int fd, u32 mode)
@@ -256,12 +257,9 @@ GF_BitStream *gf_bs_from_fd(int fd, u32 mode)
 	tmp->position = 0;
 	tmp->fd = fd;
 
-	struct stat sb;
-	fstat(fd, &sb);
-
 	/*get the size of this file (for read streams)*/
-	tmp->position = lseek(fd, 0, SEEK_CUR);
-	tmp->size = sb.st_size;
+	tmp->position = lseek_64(fd, 0, SEEK_CUR);
+	tmp->size = gf_fd_fsize(fd);
 
 	if (mode == GF_BITSTREAM_FILE_READ) {
 		tmp->cache_read_alloc = gf_opts_get_int("core", "bs-cache-size");
@@ -786,7 +784,13 @@ u32 gf_bs_read_data(GF_BitStream *bs, u8 *data, u32 nbBytes)
 {
 	u64 orig = bs->position;
 
-	if (bs->position+nbBytes > bs->size) return 0;
+	if (bs->position+nbBytes > bs->size) {
+		if (!bs->overflow_state) {
+			bs->overflow_state = 1;
+			GF_LOG(GF_LOG_ERROR, GF_LOG_CORE, ("[BS] Attempt to overread bitstream\n"));
+		}
+		return 0;
+	}
 
 	if (gf_bs_is_align(bs) ) {
 		s32 bytes_read, bytes_read_cache;
@@ -1176,6 +1180,7 @@ u32 gf_bs_write_data(GF_BitStream *bs, const u8 *data, u32 nbBytes)
 
 				while (new_size < (u32) ( bs->size + nbBytes))
 					new_size *= 2;
+				new_size = MIN(new_size, GF_UINT_MAX);
 				bs->original = (char*)gf_realloc(bs->original, sizeof(u32)*new_size);
 				if (!bs->original)
 					return 0;
@@ -1269,7 +1274,7 @@ u64 gf_bs_available(GF_BitStream *bs)
 
 #ifdef GPAC_HAS_FD
 	if (bs->fd>=0) {
-		cur = lseek(bs->fd, 0, SEEK_CUR);
+		cur = lseek_64(bs->fd, 0, SEEK_CUR);
 		end = bs->position;
 	} else
 #endif
@@ -1397,7 +1402,7 @@ void gf_bs_skip_bytes(GF_BitStream *bs, u64 nbBytes)
 		}
 #ifdef GPAC_HAS_FD
 		if (bs->fd>=0) {
-			lseek(bs->fd, bs->position, SEEK_SET);
+			lseek_64(bs->fd, bs->position, SEEK_SET);
 		} else
 #endif
 		{
@@ -1491,7 +1496,7 @@ static GF_Err BS_SeekIntern(GF_BitStream *bs, u64 offset)
 	s64 res;
 #ifdef GPAC_HAS_FD
 	if (bs->fd>=0) {
-		res = lseek(bs->fd, offset, SEEK_SET);
+		res = lseek_64(bs->fd, offset, SEEK_SET);
 		if (res>=0) res = 0;
 	} else
 #endif
@@ -1618,9 +1623,7 @@ u64 gf_bs_get_refreshed_size(GF_BitStream *bs)
 
 #ifdef GPAC_HAS_FD
 		if (bs->fd>=0) {
-			struct stat sb;
-			fstat(bs->fd, &sb);
-			bs->size = sb.st_size;
+			bs->size = gf_fd_fsize(bs->fd);
 			return bs->size;
 		}
 #endif
@@ -1951,6 +1954,8 @@ void gf_bs_mark_overflow(GF_BitStream *bs, Bool reset)
 {
 	bs->overflow_state = reset ? 0 : 2;
 }
+
+GF_EXPORT
 u32 gf_bs_is_overflow(GF_BitStream *bs)
 {
 	return bs->overflow_state;
