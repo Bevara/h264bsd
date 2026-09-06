@@ -5,11 +5,6 @@ include(filters.cmake)
 
 add_definitions(-fpic)
 
-set(USE_DEBUG "-g")
-set(USE_FLAGS "${USE_DEBUG}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
-
 #set(CMAKE_BUILD_TYPE Release)
 #set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
 #set(CMAKE_C_FLAGS "-O3 -Wall -Wextra")
