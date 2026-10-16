@@ -12,6 +12,10 @@
         "rfnalu" : "reframe_nalu.c"
     },
     "Format": ["AVC"],
-    "licence_required":false,
-    "using": ["solver_minimal_1"]
+    "using": ["solver_minimal_1"],
+    "patents": {
+        "status": "licence-required",
+        "note": "H.264/AVC: Via LA",
+        "checked": "2026-10-16"
+    }
 }
