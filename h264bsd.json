@@ -1,6 +1,6 @@
 {
     "name": "h264bsd",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "H264 decoder",
     "filters":["h264bsd","rfnalu"],
     "help": "This filter decodes H264 CBP streams through h264 bsd library.",
@@ -13,7 +13,7 @@
         "rfnalu" : "reframe_nalu.c"
     },
     "Format": ["AVC"],
-    "using": ["solver_minimal_1", "solver_1"],
+    "using": ["mm_solver_minimal_1.0.1", "mm_solver_1.0.1"],
     "patents": {
         "status": "licence-required",
         "note": "H.264/AVC: Via LA",
